@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Threads Studio</title>
+<style>
+:root{--r:12px}
+.app{--bg:transparent;--fg:var(--foreground,#1c1c1c);--mut:var(--muted-foreground,#777);--ac:var(--accent,#e8590c);--ln:var(--border,#ddd);--cd:var(--card,#fff);--on:#fff}
+.app[data-t=light]{--bg:#fafafa;--fg:#161616;--mut:#5f5f5f;--ac:#161616;--ln:#e6e6e6;--cd:#fff;--on:#fff}
+.app[data-t=dark]{--bg:#121212;--fg:#ececec;--mut:#a3a3a3;--ac:#ececec;--ln:#2a2a2a;--cd:#1a1a1a;--on:#121212}
+.app[data-t=color]{--bg:linear-gradient(135deg,#ffe3ec,#e5e8ff 55%,#dff7f0);--fg:#22203a;--mut:#6d6990;--ac:#6b4dff;--ln:#d9d4f2;--cd:rgba(255,255,255,.72);--on:#fff}
+.app[data-t=arbuz]{--bg:#173a26;--fg:#d9e8d2;--mut:#a9c4a6;--ac:#8fca5e;--ln:#2f5a3d;--cd:#1d4530;--on:#173a26}
+.app[data-t=asiimov]{--bg:#f4f3f0;--fg:#1c1c1c;--mut:#555;--ac:#e8590c;--ln:#d0ccc6;--cd:#fff;--on:#fff}
+.app[data-t=miami]{--bg:#211447;--fg:#fff4ff;--mut:#cbbdf5;--ac:#ff3fb4;--ln:#5a3fa3;--cd:#2b1b5c;--on:#fff}
+*{box-sizing:border-box}
+body:not([style*=--foreground]) .app{font-family:-apple-system,'Segoe UI',Inter,Roboto,Arial,sans-serif}
+.app{overflow-wrap:anywhere}
+.app{background:var(--bg);color:var(--fg);max-width:720px;font-family:var(--font-sans,inherit);padding:20px;border-radius:16px;display:flex;flex-direction:column;gap:16px;font-size:14px;line-height:1.5}
+.top{padding-right:2px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.top h1{font-size:17px;margin:0;font-weight:600;letter-spacing:-.01em}
+.top small{color:var(--mut);font-weight:400;margin-left:6px}
+.dots{display:flex;gap:6px}
+.dot{width:22px;height:22px;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--fg) 35%,transparent);cursor:pointer;padding:0}
+.dot.on{outline:2px solid var(--ac);outline-offset:2px}
+.nav{display:flex;gap:18px;border-bottom:1px solid var(--ln)}
+.nav b{font-weight:500;padding:6px 0;cursor:pointer;color:var(--mut);border-bottom:2px solid transparent;margin-bottom:-1px}
+.nav b.on{color:var(--fg);border-color:var(--ac)}
+.pane{display:none;flex-direction:column;gap:12px}.pane.on{display:flex}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--ln);border-radius:999px;padding:5px 11px;cursor:pointer;font-size:13px;user-select:none;color:var(--fg)}
+.chip.on{background:var(--ac);border-color:var(--ac);color:var(--on)}
+.chip.off{opacity:.45}
+input,textarea{width:100%;padding:9px 11px;border:1px solid var(--ln);border-radius:10px;background:var(--cd);color:var(--fg);font:inherit;outline:none}
+input:focus,textarea:focus{border-color:var(--ac)}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{padding:8px 14px;border-radius:10px;border:1px solid var(--ac);background:var(--ac);color:var(--on);font:inherit;cursor:pointer}
+.btn.g{background:transparent;color:var(--fg);border-color:var(--ln)}
+.btn.s{padding:3px 10px;font-size:12px}
+.mut{color:var(--mut);font-size:12.5px}
+.card{background:var(--cd);border:1px solid var(--ln);border-radius:var(--r);padding:13px 14px}
+.post .t{white-space:pre-wrap}
+.meta{display:flex;justify-content:space-between;align-items:center;margin-top:9px;font-size:12px;color:var(--mut);gap:8px;flex-wrap:wrap}
+.over{color:#e03131}
+.tr{display:grid;grid-template-columns:1fr auto;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--ln)}
+.tr:last-child{border:0}
+.tr .n{font-size:12px;color:var(--mut);min-width:96px;text-align:right;font-variant-numeric:tabular-nums}
+.tr .tg{display:block;font-size:12px;color:var(--mut)}
+.bar{height:3px;background:var(--ac);border-radius:2px;margin-top:4px;opacity:.8}
+h3{font-size:13px;margin:4px 0 0;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+.ph{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.ph .w{font-size:12px;color:var(--mut);white-space:nowrap;padding-top:2px}
+.ph.now{border-color:var(--ac)}
+.ph.now .w{color:var(--ac);font-weight:600}
+ul{margin:4px 0 0;padding-left:18px}li{margin:2px 0}
+.mix{display:flex;height:6px;border-radius:3px;overflow:hidden;margin:6px 0 2px}
+.mix i{display:block}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.kpi .card{padding:10px 12px}.kpi b{display:block;font-size:18px;font-weight:600}
+.funnel{display:flex;flex-direction:column;gap:6px}
+.funnel div{border:1px solid var(--ln);border-radius:10px;padding:8px 12px;background:var(--cd)}
+.funnel div:nth-child(2){margin:0 4%}.funnel div:nth-child(3){margin:0 8%}.funnel div:nth-child(4){margin:0 12%}.funnel div:nth-child(5){margin:0 16%;border-color:var(--ac)}
+</style></head><body>
+<div class="app" id="app">
+  <div class="top">
+    <h1>Threads Studio<small id="wk"></small></h1>
+    <div class="dots" id="dots"></div>
+  </div>
+  <div class="nav" id="nav"><b data-p="gen" class="on">Генератор</b><b data-p="trends">Тренды</b><b data-p="pr">Стратегия</b></div>
+
+  <!-- GENERATOR -->
+  <div class="pane on" id="p-gen">
+    <div class="chips" id="rubs"></div>
+    <div class="mut" id="rinfo"></div>
+    <input id="topic" placeholder="Тема (необязательно), например: чаевые курьерам">
+    <div class="row">
+      <button class="btn" id="go">Сгенерировать 5</button>
+      <button class="btn g" id="day">План на сегодня</button>
+      <button class="btn g" id="ai">✨ ИИ-версия</button>
+    </div>
+    <div id="out" style="display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+
+  <!-- TRENDS -->
+  <div class="pane" id="p-trends">
+    <div class="mut" id="tdate"></div>
+    <h3>Споры дня · Пикабу</h3><div class="card" id="tpk"></div>
+    <h3>Темы недели</h3><div class="chips" id="ttags"></div>
+    <h3>Залетает в Telegram</h3><div class="card" id="ttg"></div>
+    <div class="mut">Политика, война, религия и смерти отфильтрованы. Нажми «пост», чтобы взять тему в генератор. Тексты не копируем, берём только сюжет.</div>
+  </div>
+
+  <!-- PR STRATEGY -->
+  <div class="pane" id="p-pr">
+    <div class="card" id="nowcard"></div>
+    <h3>Воронка</h3>
+    <div class="funnel">
+      <div><b>Threads</b> · споры, истории, ИИ через жизнь. Охват и подписчики</div>
+      <div><b>Профиль</b> · био «делаю ИИ-ботов для бизнеса» + ссылка на TG</div>
+      <div><b>TG-канал</b> · кейсы, разборы, «как я сделал»</div>
+      <div><b>Лид-магнит</b> · бесплатный разбор / чек-лист «где ИИ сэкономит вам деньги»</div>
+      <div><b>Заявка</b> · созвон 15 мин → КП → проект</div>
+    </div>
+    <h3>Этапы</h3>
+    <div id="phases" style="display:flex;flex-direction:column;gap:8px"></div>
+    <h3>Что продаём потом</h3>
+    <div class="card"><ul>
+      <li>ИИ-администратор / запись клиентов в TG и WhatsApp: салоны, клиники, автосервисы</li>
+      <li>Бот-продавец по каталогу и ИИ-менеджер для Авито</li>
+      <li>CRM и автоматизация заявок</li>
+      <li>ИИ-контент для бизнеса: такой же генератор + автопостинг (этот аккаунт и есть витрина)</li>
+    </ul></div>
+    <h3>Правила</h3>
+    <div class="card"><ul>
+      <li>В Threads не продаём. Промо-посты получают ~1.7% вовлечения против 8.4% у вопросов, и алгоритм их режет</li>
+      <li>Ссылки только в профиле, в постах ссылок нет</li>
+      <li>Первый час после поста отвечаем на комменты: это +42% вовлечения</li>
+      <li>Кейсы только реальные, с цифрами клиента. Пока их нет, пишем «как я делаю» и разборы</li>
+      <li>Аккаунт анонимный до 9-й недели, личность и услуги раскрываем постепенно: «я тут делаю ботов» → кейс → оффер в TG</li>
+    </ul></div>
+  </div>
+</div>
+<script>
+const TRENDS=/*TRENDS*/{"date": "28.10.2026 06:24", "pk": [{"title": "Натуральная свежесть", "r": 8339, "c": 380, "topic": "Химия", "tags": "Химия, Бытовая химия, Реклама, Креативная реклама, Честность"}, {"title": "Клassика", "r": 5669, "c": 769, "topic": "Клassика", "tags": ""}, {"title": "Ответ на пост «Я съехала и забрала всё до единого гвоздя»", "r": 6017, "c": 575, "topic": "Я съехала и забрала всё до единого гвоздя", "tags": "Истории из жизни, Reddit, Конфликт, Соседи, Ссора, Перевод"}, {"title": "Или исполняющие обязанности", "r": 6658, "c": 321, "topic": "Marvel", "tags": "Marvel, Киновселенная Marvel, Железный человек, Тор, Капитан Америка"}, {"title": "Ощущение границ", "r": 5429, "c": 553, "topic": "Собака", "tags": "Собака, Кальмар, Веганы, Животные, Веганы и мясоеды"}, {"title": "Ответ на пост «Когда чаевые реально оправданы?»", "r": 5747, "c": 459, "topic": "Когда чаевые реально оправданы", "tags": "Чаевые, Работа, Курьер"}, {"title": "Есть правило в threads: если в нике \"psy\", 100% кукуха отъехала. Исключений нет", "r": 2052, "c": 136, "topic": "Отношения", "tags": "Отношения, Зарплата"}, {"title": "Привычки богатых людей", "r": 1738, "c": 138, "topic": "Картинки", "tags": "Картинки"}], "tags": [["Мораль", 4], ["Япония", 4], ["Девушки", 2], ["Закон", 2], ["Лига юристов", 2], ["Юристы", 2], ["Право", 2], ["Чаевые", 2], ["Работа", 2], ["Курьер", 2]], "tg": [{"x": 3.11, "src": "@denissexy", "title": "Наконец-то протестировал агентов в восстановлении генеалогии на основе публичных исторических архивов – пишу вам это как на 1/4 Австро-Венгр…"}, {"x": 2.79, "src": "@denissexy", "title": "Нашел простой АИ-способ выбирать книги: 1. Даешь агенту полный доступ ко всем своим файлам, почте и тп, и просишь составить таймлайн жизни –…"}, {"x": 2.75, "src": "@pikabu", "title": "Достаточно? В своё время говорил жене, что двое сыновей это самое оно, в смысле достаточно. Она возражала и напирала на то, что для полного …"}, {"x": 1.91, "src": "@data_secrets", "title": "Самое главное по IPO Anthropic одним словом: ( Источник )"}, {"x": 1.66, "src": "@data_secrets", "title": "В опенсорсе нашли способ почти вдвое увеличить вычислительную мощность RTX 3090 Проект gpu-unlock за пару дней набрал уже более 5 тысяч звез…"}, {"x": 1.57, "src": "@denissexy", "title": "# RoaM теперь открытая RPG и software factory Недавно я показывал вам RoaM : мою маленькую игру по мотивам Ex Machina и Космических Рейнджер…"}, {"x": 1.55, "src": "@pikabu", "title": "Ребёнок и перекладывание ответственности Я старший ребёнок из троих. Я 1991 года рождения, братья 2001 и 2007 года. Всё детство я за ними ух…"}, {"x": 1.54, "src": "@data_secrets", "title": "Исследовательница обнаружила, что если в Qwen3.5 4b исправить всего два нейрона, вы получите \"злой квен\" Конкретнее, нужно во время инференс…"}]}/*END*/;
+const START=new Date('2026-10-26T00:00:00+03:00');
+const WEEK=Math.max(1,Math.floor((Date.now()-START)/864e5/7)+1);
+const STAGE=WEEK<=8?1:WEEK<=16?2:3;
+
+const R={
+ spor:{n:"Спор",er:7.1,st:1,why:"горячее мнение, длинные ветки комментов",def:["чаевые","деньги в паре","удалёнка","кто платит на свидании","подарки начальнику"],t:[
+ "Скажу непопулярное про {t}: по-моему, тут все давно притворяются.\n\nЯ свою позицию поменял года два назад и ни разу не пожалел. А вы на какой стороне?",
+ "Тема {t} делит людей на два лагеря, и середины нет.\n\nЯ за первый. Объясню в комментах, если накинетесь)",
+ "Спорим, в комментах будет поровну?\n\n{t}. Норма или перебор? Одно слово.",
+ "Меня до сих пор бесит, как у нас относятся к теме {t}.\n\nВсе делают вид, что так и надо. Я один это вижу?",
+ "Поменяйте моё мнение. Я считаю, что {t} давно переоценено.\n\nДоводы принимаются, «ну так принято» не принимается.",
+ "Есть вещи, которые в 30 выглядят иначе, чем в 20. Для меня это {t}.\n\nА у вас что так перевернулось?"]},
+ story:{n:"История",er:6.8,st:1,why:"лучше всех конвертит в подписчиков",def:["первая зарплата","соседи сверху","ремонт","свекровь","собеседование"],t:[
+ "Знакомый рассказал историю, у которой нет правильного ответа. Всё началось с темы {t}.\n\n[2–3 предложения конкретики: кто, сколько, где]\n\nЯ бы на его месте сделал так же. А вы?",
+ "Мне 3[x], и только на этой неделе до меня дошло одно про {t}.\n\n[что произошло, одна деталь с суммой или временем]\n\nлучше поздно, чем никогда",
+ "Коллега положила на стол заявление. Причина смешная, но я её понимаю.\n\n[причина]\n\nВы бы ушли из-за такого?",
+ "Как я опозорился на теме {t}. Коротко:\n\n[ситуация]\n\nТеперь это семейная байка. Расскажите свою, мне надо полегчать",
+ "Подслушал разговор в очереди. Про {t}.\n\n[реплика 1]\n[реплика 2]\n\nДо сих пор думаю, кто из них прав."]},
+ ask:{n:"Вопрос",er:8.4,st:1,why:"самый вовлекающий формат, ×3 охват",def:["первая работа","детство в 2000-х","деньги","отпуск","нейросети"],t:[
+ "Какой самый дорогой урок вам дала тема {t}? В деньгах или в нервах, неважно.",
+ "Продолжите фразу: я понял, что стал взрослым, когда…",
+ "Что вы перестали делать после 25, и жизнь стала лучше?",
+ "Сколько вы получали на первой работе? Я 8 тысяч и считал себя богачом.",
+ "Назовите вещь, которую все хвалят, а вы не понимаете, в чём прикол.",
+ "Честно: сколько у вас подписок, которыми вы не пользуетесь?",
+ "Про {t} одним словом. Поехали"]},
+ ai:{n:"ИИ через жизнь",er:6.3,st:1,why:"разогрев аудитории под будущие услуги",def:["резюме","поздравление тёще","переписка с начальником","выбор подарка","ссора с женой"],t:[
+ "Попросил нейросеть помочь с темой {t}. Ответ был такой, что я завис.\n\n[что она выдала]\n\nстрашно или удобно? я пока не решил",
+ "Жена запретила мне спрашивать у ChatGPT про {t}. Причина: он оказался прав.\n\nУ кого ещё ИИ выиграл семейный спор?",
+ "Заберёт ли нейросеть вашу работу? Я спросил у неё самой.\n\nОтвет: [ответ]. Вы бы доверили ей свою?",
+ "Вы уже пользуетесь ИИ на работе или пока «это всё баловство»?\n\nЯ без него уже не могу. Особенно в теме {t}.",
+ "Знакомая три вечера сидела над задачей «{t}». Нейросеть сделала это за 4 минуты.\n\nОна не обрадовалась. Она обиделась)"]},
+ case:{n:"Как я делаю",er:6.8,st:2,why:"экспертность без продажи, первые лиды",def:["бот для записи","ИИ-ответы на Авито","автопостинг","CRM для заявок"],t:[
+ "Сделал на выходных штуку: {t}.\n\n[что она делает, одним предложением]\n[сколько времени экономит, только реальная цифра]\n\nСпрашивайте, расскажу как",
+ "Этот аккаунт ведёт бот, которого я написал сам. Пишет, ищет фото, выбирает время.\n\nЯ только проверяю. Странное чувство, если честно",
+ "Владелец [бизнеса] спросил, можно ли {t}. Можно. Ушло [N] дней.\n\nСамое сложное было не в коде, а в [где]",
+ "Почему 90% чат-ботов бесят клиентов? Потому что их делают для галочки.\n\nКогда я делаю {t}, первым делом пишу ответы на 20 самых тупых вопросов.",
+ "Посчитал, сколько администратор салона тратит на «а есть окошко в субботу?». [N] часов в неделю.\n\nВот это я и автоматизирую."]},
+ pain:{n:"Боль бизнеса",er:7.1,st:2,why:"спор среди предпринимателей, ЦА услуг",def:["заявки ночью","менеджеры не перезванивают","Авито","запись клиентов"],t:[
+ "Предприниматели, честно: сколько заявок вы теряете из-за темы {t}?\n\nБольшинство даже не считает. А зря.",
+ "Непопулярное мнение: бизнесу не нужен «умный ИИ». Ему нужно, чтобы на сообщение отвечали за минуту, а не через три часа.",
+ "Позвонил в 5 клиник в 21:00. Ответила одна. Запись онлайн была у двух.\n\nА потом все жалуются, что клиентов нет.",
+ "Вы бы доверили боту общение с клиентами? Владельцы бизнеса, интересно ваше мнение"]},
+ soft:{n:"Заход в TG",er:3.8,st:2,why:"редко: 1 из 8 постов, без ссылки в тексте",def:["разбор ботов","кейсы"],t:[
+ "Тут споры, а в телеге разбираю, как я делаю ботов для бизнеса. Ссылка в профиле, если интересно",
+ "Многие спрашивают, на чём собран этот аккаунт. Расписал по шагам в канале, ссылка в шапке",
+ "Взял пару бесплатных разборов: смотрю, где ИИ сэкономит деньги вашему бизнесу. Пишите в TG из профиля"]}
+};
+const MIX={1:{spor:30,story:25,ask:25,ai:20},2:{spor:20,story:15,ask:15,ai:15,case:20,pain:10,soft:5},3:{spor:10,ask:10,ai:20,case:30,pain:20,soft:10}};
+const COL={spor:"#ff6b6b",story:"#fab005",ask:"#4dabf7",ai:"#9775fa",case:"#51cf66",pain:"#ff922b",soft:"#868e96"};
+const THEMES=[["auto","Как в Hermes","conic-gradient(#888 0 50%,#ddd 0)"],["light","Светлая","#fafafa"],["dark","Тёмная","#121212"],["color","Цветная","linear-gradient(135deg,#ffb3c8,#b7c0ff,#9ee8d2)"],["arbuz","Арбуз","linear-gradient(135deg,#173a26 50%,#8fca5e 0)"],["asiimov","Азимов","linear-gradient(135deg,#f4f3f0 50%,#e8590c 0)"],["miami","Майами","linear-gradient(135deg,#211447 50%,#ff3fb4 0)"]];
+
+const $=s=>document.querySelector(s), app=$('#app');
+const ls={g:k=>{try{return localStorage.getItem(k)}catch(e){return null}},s:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuf=a=>a.map(x=>[Math.random(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
+
+// themes
+function setTheme(t){app.dataset.t=t==="auto"?"":t;ls.s('ts_theme',t);document.querySelectorAll('.dot').forEach(d=>d.classList.toggle('on',d.dataset.t===t))}
+THEMES.forEach(([k,n,c])=>{const d=document.createElement('button');d.className='dot';d.dataset.t=k;d.title=n;d.style.background=c;d.onclick=()=>setTheme(k);$('#dots').appendChild(d)});
+setTheme(ls.g('ts_theme')||'auto');
+if(!window.hermes&&!ls.g('ts_theme'))setTheme('light');
+
+// nav
+document.querySelectorAll('#nav b').forEach(b=>b.onclick=()=>{document.querySelectorAll('#nav b').forEach(x=>x.classList.toggle('on',x===b));document.querySelectorAll('.pane').forEach(p=>p.classList.toggle('on',p.id==='p-'+b.dataset.p))});
+$('#wk').textContent=`неделя ${WEEK} · этап ${STAGE}`;
+
+// generator
+let cur='spor';
+Object.entries(R).forEach(([k,r])=>{const c=document.createElement('span');c.className='chip'+(k===cur?' on':'')+(r.st>STAGE?' off':'');c.textContent=r.n;if(r.st>STAGE)c.title='Рубрика с 9-й недели. Пока рано, но посмотреть можно';c.dataset.k=k;c.onclick=()=>{cur=k;document.querySelectorAll('#rubs .chip').forEach(x=>x.classList.toggle('on',x===c));info();gen()};$('#rubs').appendChild(c)});
+function info(){const r=R[cur];$('#rinfo').innerHTML=`Прогноз вовлечения ${r.er}% (среднее по Threads 3.8%) · ${r.why}`+(r.st>STAGE?` · <b>рано: эта рубрика с 9-й недели</b>`:'')}
+function make(k,topic){const r=R[k];let t=pick(r.t);t=t.replace(/\{t\}/g,()=>'«'+(topic||pick(r.def))+'»');return {k,t}}
+function render(list,stamp){const o=$('#out');o.innerHTML='';list.forEach((p,i)=>{const d=document.createElement('div');d.className='card post';
+ const tx=document.createElement('div');tx.className='t';tx.contentEditable=true;tx.textContent=p.t;
+ const m=document.createElement('div');m.className='meta';const info=document.createElement('span');
+ const upd=()=>{const n=tx.textContent.length;info.innerHTML=(stamp?stamp[i]+' · ':'')+R[p.k].n+' · <span class="'+(n>500?'over':'')+'">'+n+'/500</span>'+(/\[/.test(tx.textContent)?' · заполни [ ]':'')};
+ tx.oninput=upd;upd();const b=document.createElement('button');b.className='btn g s';b.textContent='Копировать';b.onclick=()=>{navigator.clipboard.writeText(tx.textContent);b.textContent='Скопировано'};
+ m.append(info,b);d.append(tx,m);o.appendChild(d)})}
+function gen(){const topic=$('#topic').value.trim();const r=R[cur];const ts=shuf(r.t).slice(0,5);render(ts.map(t=>({k:cur,t:t.replace(/\{t\}/g,()=>'«'+(topic||pick(r.def))+'»')})))}
+function day(){const mix=MIX[STAGE];const n=WEEK<=1?3:4;const keys=[];const bag=[];Object.entries(mix).forEach(([k,v])=>{for(let i=0;i<v;i++)bag.push(k)});
+ while(keys.length<n){const k=pick(bag);if(!keys.includes(k)||keys.length>=Object.keys(mix).length)keys.push(k)}
+ const hot=TRENDS.pk.slice(0,6).map(x=>x.topic).filter(Boolean);
+ const times=['08:2'+(3+Math.floor(Math.random()*6)),'13:1'+(1+Math.floor(Math.random()*8)),'18:4'+(1+Math.floor(Math.random()*8)),'21:3'+(1+Math.floor(Math.random()*8))].slice(0,n);
+ render(keys.map((k,i)=>{const p=make(k,i===0&&hot[0]?hot[0]:'');return p}),times)}
+$('#go').onclick=gen;$('#day').onclick=day;
+function send(p){if(window.hermes)window.hermes.send(p);else{navigator.clipboard&&navigator.clipboard.writeText(p);alert('Промпт скопирован. Вставь его в чат Hermes или в бота.')}}
+$('#ai').onclick=()=>{const tp=$('#topic').value.trim();const hot=TRENDS.pk.slice(0,5).map(x=>x.title).join('; ');
+ send(`Напиши 5 постов для Threads (@yuryrudeee) в рубрике «${R[cur].n}»${tp?`, тема: ${tp}`:''}. Сейчас неделя ${WEEK}, этап ${STAGE} стратегии (потом продаю ИИ-услуги для бизнеса через TG). Строго по STYLE.md из ThreadsBot (анти-ИИ чек-лист). Горячее сегодня: ${hot}. 200–480 символов, без ссылок и выдуманных кейсов.`)};
+info();gen();
+
+// trends
+$('#tdate').textContent=TRENDS.date?'Обновлено '+TRENDS.date+' · обновляется само в 06:23 и 14:23':'Нет данных: запусти trends.py';
+const mx=Math.max(1,...TRENDS.pk.map(x=>x.c));
+function trow(title,n,w,topic){const d=document.createElement('div');d.className='tr';d.innerHTML=`<div>${title}<div class="bar" style="width:${w}%"></div></div><div class="row"><span class="n">${n}</span></div>`;
+ const b=document.createElement('button');b.className='btn g s';b.textContent='пост';b.onclick=()=>{$('#topic').value=topic||title;document.querySelector('#nav b[data-p=gen]').click();document.querySelector('#rubs .chip[data-k=spor]').click()};d.querySelector('.row').appendChild(b);return d}
+TRENDS.pk.forEach(x=>$('#tpk').appendChild(trow(x.title+(x.tags?`<span class="tg">${x.tags}</span>`:''),`${x.c} 💬 · ${x.r} ⬆`,Math.round(x.c/mx*100),x.topic)));
+TRENDS.tags.forEach(([t,n])=>{const c=document.createElement('span');c.className='chip';c.textContent=t+' '+n;c.onclick=()=>{$('#topic').value=t.toLowerCase();document.querySelector('#nav b[data-p=gen]').click();document.querySelector('#rubs .chip[data-k=spor]').click()};$('#ttags').appendChild(c)});
+const mt=Math.max(1,...TRENDS.tg.map(x=>x.x));
+TRENDS.tg.forEach(x=>$('#ttg').appendChild(trow(`<span class="mut">${x.src}</span> ${x.title}`,'×'+x.x,Math.round(x.x/mt*100),'')));
+if(!TRENDS.pk.length)$('#tpk').textContent='пусто';if(!TRENDS.tg.length)$('#ttg').textContent='пусто';
+
+// strategy
+const PH=[
+ {w:"1–8",st:1,h:"Раскачка охвата",k:["3 поста/день в 1-ю неделю, потом 4","цель: 1 000 подписчиков, 1 коммент на 3 лайка"],l:["Споры, истории, вопросы на темы дня","ИИ только через жизнь: «нейросеть выиграла семейный спор»","В профиле пока без продаж, просто «паблик про жизнь и ИИ»"]},
+ {w:"9–16",st:2,h:"Экспертность",k:["30–40% постов про ИИ","цель: 3 000 подписчиков, первые 100 в TG, 3–5 заявок"],l:["Запуск TG-канала, ссылка в профиле","«Как я делаю» и разборы болей бизнеса","Лид-магнит: бесплатный разбор, где ИИ сэкономит деньги","Первые 2–3 проекта со скидкой за кейс и отзыв"]},
+ {w:"17+",st:3,h:"Продажи",k:["60%+ ИИ и бизнес","цель: стабильно 5–10 заявок в месяц"],l:["Кейсы клиентов с цифрами (с разрешения)","Оффер и прайс в TG, в Threads по-прежнему без продаж","Повтор формата залетевших кейсов, сравнения «до/после»"]}];
+PH.forEach(p=>{const d=document.createElement('div');d.className='card ph'+(p.st===STAGE?' now':'');
+ const m=MIX[p.st];const bar=Object.entries(m).map(([k,v])=>`<i style="width:${v}%;background:${COL[k]}" title="${R[k].n} ${v}%"></i>`).join('');
+ d.innerHTML=`<div class="w">нед. ${p.w}${p.st===STAGE?'<br>сейчас':''}</div><div><b>${p.h}</b><div class="mix">${bar}</div><div class="mut">${Object.entries(m).map(([k,v])=>R[k].n+' '+v+'%').join(' · ')}</div><ul>${p.l.map(x=>'<li>'+x+'</li>').join('')}</ul><div class="mut" style="margin-top:4px">${p.k.join(' · ')}</div></div>`;$('#phases').appendChild(d)});
+const nowP=PH[STAGE-1];
+$('#nowcard').innerHTML=`<div class="mut">Сейчас неделя ${WEEK}</div><b style="font-size:16px">Этап ${STAGE}: ${nowP.h}</b><div class="kpi" style="margin-top:8px">${[['Постов в день',WEEK<=1?'3':'4'],['Доля ИИ',STAGE===1?'15–20%':STAGE===2?'30–40%':'60%+'],['До след. этапа',STAGE<3?((STAGE===1?9:17)-WEEK)+' нед.':'—']].map(([a,b])=>`<div class="card"><span class="mut">${a}</span><b>${b}</b></div>`).join('')}</div>`;
+</script></body></html>
